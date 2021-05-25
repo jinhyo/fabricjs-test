@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.4.0/fabric.min.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" style="border: 1px solid black"></canvas>
+
+    <script>
+      const canvas = new fabric.Canvas("canvas", {
+        height: 500,
+        width: 500,
+      });
+      let rectangle, originX, originY;
+      let mousePressed = false;
+      let objectSelected = false;
+
+      canvas.on("mouse:down", downMouse);
+      canvas.on("mouse:move", moveMouse);
+      canvas.on("mouse:up", upMouse);
+      canvas.on("selection:created", () => {
+        objectSelected = true;
+      });
+      canvas.on("selection:cleared", () => {
+        objectSelected = false;
+      });
+
+      function downMouse(e) {
+        let pointer = canvas.getPointer(e);
+
+        mousePressed = true;
+        originX = pointer.x;
+        originY = pointer.y;
+
+        if (objectSelected) {
+          return;
+        }
+
+        rectangle = new fabric.Rect({
+          left: originX,
+          top: originY,
+          width: 0,
+          height: 0,
+          fill: "transparent",
+          stroke: "black",
+          strokeWidth: 0.3,
+          strokeDashArray: [2, 2],
+        });
+        rectangle.setControlVisible("mtr", false);
+
+        canvas.add(rectangle);
+      }
+
+      function moveMouse(e) {
+        if (!mousePressed || objectSelected) return;
+
+        let pointer = canvas.getPointer(e);
+
+        if (originX > pointer.x) {
+          rectangle.set({ left: Math.abs(pointer.x) });
+        }
+
+        if (originY > pointer.y) {
+          rectangle.set({ top: Math.abs(pointer.y) });
+        }
+
+        rectangle.set({ width: Math.abs(originX - pointer.x) });
+        rectangle.set({ height: Math.abs(originY - pointer.y) });
+
+        canvas.requestRenderAll();
+      }
+
+      function upMouse(e) {
+        mousePressed = false;
+
+        if (
+          rectangle.getScaledHeight() <= 7 &&
+          rectangle.getScaledWidth() <= 7
+        ) {
+          canvas.remove(rectangle);
+        }
+      }
+
+      function getObjects() {
+        const object = canvas.getObjects();
+      }
+    </script>
+
+    <button onclick="getObjects()">get object</button>
+  </body>
+</html>
